@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: hermes-github-api
+    restart: unless-stopped
+    ports:
+      - '${PORT:-3000}:3000'
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3000
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_OWNER=${GITHUB_OWNER:-anddoye}
+      - GITHUB_REPO=${GITHUB_REPO:-hermes-github}
+      - GITHUB_API_URL=${GITHUB_API_URL:-https://api.github.com}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-900000}
+      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX:-100}
+    env_file:
+      - .env
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - hermes-network
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  # Optional: Redis for caching and session storage
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: hermes-github-redis
+  #   restart: unless-stopped
+  #   ports:
+  #     - '6379:6379'
+  #   volumes:
+  #     - redis-data:/data
+  #   networks:
+  #     - hermes-network
+
+networks:
+  hermes-network:
+    driver: bridge
+
+# volumes:
+#   redis-data:
