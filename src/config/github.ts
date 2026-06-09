@@ -4,15 +4,38 @@
 
 import { Octokit } from 'octokit';
 import * as dotenv from 'dotenv';
+import { execSync } from 'child_process';
 import { AppConfig, GitHubConfig } from '../types';
 
 dotenv.config();
 
 /**
- * GitHub configuration from environment variables.
+ * Get GitHub token from environment or gh CLI keyring.
+ */
+function getGitHubToken(): string {
+  // Try environment variable first
+  if (process.env.GITHUB_TOKEN && !process.env.GITHUB_TOKEN.includes('${')) {
+    return process.env.GITHUB_TOKEN;
+  }
+
+  // Fallback to gh CLI keyring
+  try {
+    const token = execSync('gh auth token', { encoding: 'utf8' }).trim();
+    if (token && !token.includes('${')) {
+      return token;
+    }
+  } catch (err) {
+    // gh CLI not available
+  }
+
+  return '';
+}
+
+/**
+ * GitHub configuration from environment variables or gh CLI.
  */
 export const githubConfig: GitHubConfig = {
-  token: process.env.GITHUB_TOKEN || '',
+  token: getGitHubToken(),
   baseUrl: process.env.GITHUB_API_URL || 'https://api.github.com',
   org: process.env.GITHUB_ORG,
   defaultBranch: process.env.GITHUB_DEFAULT_BRANCH || 'main',
