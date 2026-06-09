@@ -3,7 +3,7 @@
 // ============================================================
 
 import { Octokit } from 'octokit';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 import { AppConfig, GitHubConfig } from '../types';
 
 dotenv.config();

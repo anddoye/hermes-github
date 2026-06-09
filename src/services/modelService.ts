@@ -125,7 +125,7 @@ export async function getModelExecution(id: string): Promise<ModelExecutionRespo
       if (run.status === 'completed') {
         execution.status = run.conclusion === 'success' ? 'completed' : 'failed';
         execution.completedAt = new Date().toISOString();
-      } else {
+      } else if (run.status) {
         execution.status = statusMap[run.status] || 'running';
       }
 
